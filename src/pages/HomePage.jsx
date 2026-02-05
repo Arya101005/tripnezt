@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { collection, query, limit, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import TripCard from '../components/TripCard';
 import Footer from '../components/Footer';
+import spiritualImg from '../assets/spiritual.jpg';
 
 // Animation variants
 const fadeInUp = {
@@ -28,9 +30,9 @@ const staggerContainer = {
 };
 
 const CATEGORIES = [
-  { id: 'mountains', label: 'Mountains', image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=400' },
+  { id: 'mountains', label: 'Mountains', image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=400' },
   { id: 'beaches', label: 'Beaches', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=400' },
-  { id: 'spiritual', label: 'Spiritual', image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?q=80&w=400' },
+  { id: 'spiritual', label: 'Spiritual', image: spiritualImg },
   { id: 'wildlife', label: 'Wildlife', image: 'https://images.unsplash.com/photo-1575550959106-5a7defe28b56?q=80&w=400' },
   { id: 'honeymoon', label: 'Honeymoon', image: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=400' },
   { id: 'heritage', label: 'Heritage', image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?q=80&w=400' },
@@ -76,6 +78,7 @@ const WHY_CHOOSE = [
 ];
 
 export default function HomePage() {
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [featuredTrips, setFeaturedTrips] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -83,7 +86,24 @@ export default function HomePage() {
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
 
-  // Debounced search function
+  // Redirect to login if not authenticated - only on initial load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!authLoading && !user) {
+        navigate('/auth', { replace: true });
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [user, authLoading, navigate]);
+
+  // Show loading or redirecting state
+  if (authLoading || (!user && !loading)) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-forest-green border-t-transparent rounded-full" />
+      </div>
+    );
+  }
   const searchTrips = useCallback(async (searchTerm) => {
     if (!searchTerm || searchTerm.length < 2) {
       setSearchResults([]);
@@ -164,6 +184,9 @@ export default function HomePage() {
     navigate(`/trips?category=${categoryId}`);
   };
 
+  // Don't render if not authenticated (will redirect)
+  // Navigation is handled by useEffect above
+  
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
@@ -250,47 +273,70 @@ export default function HomePage() {
       </motion.div>
 
       {/* Categories Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <motion.div 
-          className="text-center mb-12"
+          className="text-center mb-8 sm:mb-12"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
           variants={fadeInUp}
         >
-          <h2 className="text-3xl font-serif font-bold text-gray-900">Explore by Category</h2>
+          <h2 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900">Explore by Category</h2>
           <p className="text-gray-500 mt-2">Find your perfect adventure</p>
         </motion.div>
         
         <motion.div 
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
           variants={staggerContainer}
         >
           {CATEGORIES.map((category) => (
-            <motion.button
+            <motion.a
               key={category.id}
-              onClick={() => handleCategoryClick(category.id)}
-              className="group relative rounded-xl overflow-hidden aspect-square"
+              href={`/trips?category=${category.id}`}
+              className="group relative rounded-xl overflow-hidden cursor-pointer block"
               variants={fadeInUp}
-              whileHover={{ scale: 1.02 }}
             >
-              <motion.img
-                src={category.image}
-                alt={category.label}
-                className="w-full h-full object-cover"
-                loading="lazy"
-                whileHover={{ scale: 1.1 }}
-                transition={{ duration: 0.5 }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-4">
-                <p className="text-white font-semibold text-lg">{category.label}</p>
+              <div className="aspect-[4/3] sm:aspect-square">
+                <motion.img
+                  src={category.image}
+                  alt={category.label}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  whileHover={{ scale: 1.08 }}
+                  transition={{ duration: 0.4 }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute inset-0 bg-forest-green/0 group-hover:bg-forest-green/10 transition-colors duration-300" />
               </div>
-            </motion.button>
+              <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
+                <p className="text-white font-semibold text-sm sm:text-base">{category.label}</p>
+              </div>
+              {/* Touch feedback overlay */}
+              <div className="absolute inset-0 bg-black/20 opacity-0 active:opacity-100 transition-opacity duration-150" />
+            </motion.a>
           ))}
+        </motion.div>
+        
+        {/* View All Categories Link */}
+        <motion.div 
+          className="text-center mt-8"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeInUp}
+        >
+          <a 
+            href="/trips"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-full hover:bg-forest-green hover:text-white transition-all duration-300 font-medium"
+          >
+            View All Categories
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </a>
         </motion.div>
       </section>
 
@@ -392,6 +438,43 @@ export default function HomePage() {
               </motion.div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
               <p className="text-gray-500 text-sm">{item.description}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
+
+      {/* Brand Partners Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 bg-gray-50">
+        <motion.div 
+          className="text-center mb-12"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeInUp}
+        >
+          <h2 className="text-3xl font-serif font-bold text-gray-900">Our Brand Partners</h2>
+          <p className="text-gray-500 mt-2">Trusted partners in your travel journey</p>
+        </motion.div>
+        
+        <motion.div 
+          className="flex flex-wrap justify-center items-center gap-8 md:gap-16"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={staggerContainer}
+        >
+          {[
+            { name: 'Make my trip', initial: 'M' },
+            { name: 'Riya connect', initial: 'R' },
+            { name: 'Rizlive', initial: 'R' },
+          ].map((partner, index) => (
+            <motion.div 
+              key={index}
+              variants={fadeInUp}
+              className="bg-white px-8 py-6 rounded-xl shadow-sm hover:shadow-md transition-shadow flex items-center justify-center"
+            >
+              <span className="text-2xl font-bold text-forest-green">{partner.initial}</span>
+              <span className="ml-3 text-lg font-semibold text-gray-700">{partner.name}</span>
             </motion.div>
           ))}
         </motion.div>

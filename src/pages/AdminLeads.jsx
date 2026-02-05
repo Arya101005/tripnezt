@@ -56,6 +56,11 @@ export default function AdminLeads() {
         updatedAt: serverTimestamp()
       });
 
+      // Update local state immediately
+      setBookings(prev => prev.map(b => 
+        b.id === bookingId ? { ...b, status: newStatus } : b
+      ));
+
       // Update trip seat count
       if (booking.tripId) {
         const tripRef = doc(db, 'trips', booking.tripId);

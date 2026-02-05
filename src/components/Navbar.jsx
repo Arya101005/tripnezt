@@ -79,13 +79,6 @@ export default function Navbar() {
             
             {user ? (
               <div className="flex items-center gap-4 relative" ref={dropdownRef}>
-                <Link
-                  to="/my-bookings"
-                  className="text-gray-700 hover:text-forest-green transition font-medium"
-                >
-                  My Bookings
-                </Link>
-                
                 {/* User Avatar with Dropdown */}
                 <div className="relative">
                   <button
@@ -120,16 +113,6 @@ export default function Navbar() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                           </svg>
                           My Account
-                        </Link>
-                        <Link
-                          to="/my-bookings"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                          </svg>
-                          My Bookings
                         </Link>
                       </div>
                       
@@ -260,17 +243,6 @@ export default function Navbar() {
             
             {user ? (
               <>
-                <Link
-                  to="/my-bookings"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                  My Bookings
-                </Link>
-                
                 {userProfile?.role === 'admin' && userProfile?.status === 'approved' && (
                   <>
                     <Link

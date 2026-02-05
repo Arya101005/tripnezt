@@ -97,25 +97,33 @@ const UserDashboard = memo(() => {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pt-16">
       <Navbar />
       
       {/* Header */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center gap-6">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-forest-green to-teal-400 flex items-center justify-center text-white text-2xl font-bold shadow-lg flex-shrink-0">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-forest-green to-teal-400 flex items-center justify-center text-white text-3xl font-bold shadow-lg flex-shrink-0">
               {userProfile?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
             </div>
-            <div className="min-w-0">
+            <div className="flex-1 min-w-0 w-full">
               <h1 className="text-2xl font-bold text-gray-900 truncate">
                 {userProfile?.name || 'User'}
               </h1>
               <p className="text-gray-500 truncate">{user?.email}</p>
-              <div className="flex items-center gap-2 mt-2">
+              <div className="flex flex-wrap items-center gap-3 mt-3">
                 <span className="px-3 py-1 bg-forest-green/10 text-forest-green text-xs font-medium rounded-full flex-shrink-0">
                   Member
                 </span>
+                {userProfile?.phone && (
+                  <span className="text-gray-500 text-xs flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    {userProfile.phone}
+                  </span>
+                )}
                 {userProfile?.createdAt && (
                   <span className="text-gray-400 text-xs whitespace-nowrap">
                     Since {new Date(userProfile.createdAt).getFullYear()}
@@ -123,6 +131,12 @@ const UserDashboard = memo(() => {
                 )}
               </div>
             </div>
+            <button
+              onClick={handleSignOut}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium flex-shrink-0"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
       </div>

@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { motion } from 'framer-motion';
 import { db } from '../firebase';
 import Navbar from '../components/Navbar';
 import BookingModal from '../components/BookingModal';
+import TripCard from '../components/TripCard';
 
-// Sample gallery images
-const GALLERY_IMAGES = [
+// Default gallery images as fallback
+const DEFAULT_GALLERY_IMAGES = [
   'https://images.unsplash.com/photo-1564507592333-c60657eea523?q=80&w=800',
   'https://images.unsplash.com/photo-1477587458883-47145ed94245?q=80&w=800',
   'https://images.unsplash.com/photo-1590069261209-f8e9b8642343?q=80&w=800',
@@ -21,6 +23,8 @@ export default function TripDetails() {
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [relatedTrips, setRelatedTrips] = useState([]);
+  const [relatedImages, setRelatedImages] = useState([]);
 
   useEffect(() => {
     const fetchTrip = async () => {
@@ -29,12 +33,80 @@ export default function TripDetails() {
         const docSnap = await getDoc(docRef);
         
         if (docSnap.exists()) {
-          setTrip({ id: docSnap.id, ...docSnap.data() });
+          const tripData = { id: docSnap.id, ...docSnap.data() };
+          setTrip(tripData);
+          
+          // Fetch related trips based on category
+          if (tripData.category) {
+            fetchRelatedTrips(tripData.category, id);
+          }
+          
+          // Fetch related images based on location/state
+          if (!tripData.gallery || tripData.gallery.length === 0) {
+            fetchRelatedImages(tripData.location || tripData.state, tripData.category);
+          }
         }
       } catch (err) {
         console.error('Error fetching trip:', err);
       } finally {
         setLoading(false);
+      }
+    };
+    
+    const fetchRelatedTrips = async (category, currentId) => {
+      try {
+        const q = query(
+          collection(db, 'trips'),
+          where('category', '==', category),
+          limit(4)
+        );
+        const snapshot = await getDocs(q);
+        const trips = snapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(t => t.id !== currentId)
+          .slice(0, 3);
+        setRelatedTrips(trips);
+      } catch (err) {
+        console.error('Error fetching related trips:', err);
+      }
+    };
+    
+    const fetchRelatedImages = async (location, category) => {
+      // Fetch gallery images from related trips with same location/category
+      try {
+        let q;
+        if (location) {
+          q = query(
+            collection(db, 'trips'),
+            where('location', '==', location),
+            limit(6)
+          );
+        } else if (category) {
+          q = query(
+            collection(db, 'trips'),
+            where('category', '==', category),
+            limit(6)
+          );
+        }
+        
+        if (q) {
+          const snapshot = await getDocs(q);
+          const images = snapshot.docs
+            .map(doc => doc.data().imageUrl)
+            .filter(img => img)
+            .slice(0, 6);
+          
+          if (images.length > 0) {
+            setRelatedImages(images);
+          } else {
+            setRelatedImages(DEFAULT_GALLERY_IMAGES);
+          }
+        } else {
+          setRelatedImages(DEFAULT_GALLERY_IMAGES);
+        }
+      } catch (err) {
+        console.error('Error fetching related images:', err);
+        setRelatedImages(DEFAULT_GALLERY_IMAGES);
       }
     };
 
@@ -81,6 +153,17 @@ export default function TripDetails() {
 
   const formattedPrice = trip.price ? `₹${trip.price.toLocaleString('en-IN')}` : 'Contact for Price';
 
+  // Get gallery images from trip data or use related/default
+  const getGalleryImages = () => {
+    if (trip.gallery && trip.gallery.length > 0) {
+      return trip.gallery;
+    }
+    if (relatedImages.length > 0) {
+      return relatedImages;
+    }
+    return DEFAULT_GALLERY_IMAGES;
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
@@ -88,7 +171,7 @@ export default function TripDetails() {
       {/* Hero Image */}
       <div 
         className="relative h-[60vh] min-h-[400px] bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${trip.imageUrl || GALLERY_IMAGES[0]})` }}
+        style={{ backgroundImage: `url(${trip.imageUrl || DEFAULT_GALLERY_IMAGES[0]})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60" />
         
@@ -154,30 +237,46 @@ export default function TripDetails() {
             <section>
               <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6">Itinerary</h2>
               <div className="space-y-0">
-                {[
-                  { day: 'Day 01', title: 'Arrival & Welcome', desc: 'Arrive at the destination and check-in to your hotel. Evening welcome dinner with cultural performances.' },
-                  { day: 'Day 02', title: 'Local Exploration', desc: 'Guided tour of major attractions including historical sites, local markets, and famous landmarks.' },
-                  { day: 'Day 03', title: 'Adventure Activities', desc: 'Full day of adventure activities such as trekking, water sports, or wildlife spotting as per the package.' },
-                  { day: 'Day 04', title: 'Cultural Experience', desc: 'Immerse yourself in local culture with cooking classes, village visits, and traditional ceremonies.' },
-                  { day: 'Day 05', title: 'Departure', desc: 'Final morning at leisure, checkout, and transfer to the airport/railway station for your journey home.' },
-                ].map((item, index) => (
-                  <div key={index} className="flex gap-6 pb-8 relative">
-                    {/* Vertical Line */}
-                    {index < 4 && (
-                      <div className="absolute left-[11px] top-10 bottom-0 w-px bg-gray-200" />
-                    )}
-                    {/* Circle Node */}
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-forest-green border-4 border-white shadow-md z-10" />
-                    {/* Content */}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className="text-sm font-bold text-forest-green">{item.day}</span>
+                {(trip.itinerary && trip.itinerary.length > 0 ? trip.itinerary : [
+                  { day: 1, title: 'Arrival & Welcome', description: 'Arrive at the destination and check-in to your hotel. Evening welcome dinner with cultural performances.' },
+                  { day: 2, title: 'Local Exploration', description: 'Guided tour of major attractions including historical sites, local markets, and famous landmarks.' },
+                  { day: 3, title: 'Adventure Activities', description: 'Full day of adventure activities such as trekking, water sports, or wildlife spotting as per the package.' },
+                  { day: 4, title: 'Cultural Experience', description: 'Immerse yourself in local culture with cooking classes, village visits, and traditional ceremonies.' },
+                  { day: 5, title: 'Departure', description: 'Final morning at leisure, checkout, and transfer to the airport/railway station for your journey home.' },
+                ]).map((item, index) => {
+                  const isLast = index === (trip.itinerary?.length || 5) - 1;
+                  return (
+                    <motion.div
+                      key={item.day || index}
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.1 }}
+                      className="flex gap-6 pb-8 relative"
+                    >
+                      {/* Animated Vertical Line */}
+                      {!isLast && (
+                        <motion.div
+                          initial={{ height: 0 }}
+                          whileInView={{ height: '100%' }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.5, delay: index * 0.1 }}
+                          className="absolute left-[11px] top-10 bottom-0 w-px bg-gray-200 origin-top"
+                        />
+                      )}
+                      {/* Circle Node */}
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-forest-green border-4 border-white shadow-md z-10" />
+                      {/* Content */}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-1">
+                          <span className="text-sm font-bold text-forest-green">Day {item.day || index + 1}</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h3>
+                        <p className="text-gray-600 leading-relaxed">{item.description}</p>
                       </div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h3>
-                      <p className="text-gray-600 leading-relaxed">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
+                    </motion.div>
+                  );
+                })}
               </div>
             </section>
 
@@ -185,17 +284,29 @@ export default function TripDetails() {
             <section>
               <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6">Gallery</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {GALLERY_IMAGES.map((image, index) => (
+                {getGalleryImages().map((image, index) => (
                   <div key={index} className="aspect-square rounded-xl overflow-hidden">
                     <img
                       src={image}
                       alt={`Gallery ${index + 1}`}
-                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-500 cursor-pointer"
                     />
                   </div>
                 ))}
               </div>
             </section>
+
+            {/* Related Destinations */}
+            {relatedTrips.length > 0 && (
+              <section>
+                <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6">Related Destinations</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {relatedTrips.map((relatedTrip) => (
+                    <TripCard key={relatedTrip.id} trip={relatedTrip} />
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
 
           {/* Right Content - 33% Sticky Booking Card */}

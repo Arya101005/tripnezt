@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import muralitharan from '../assets/muralitharan.jpeg';
 
 // Animations
 const fadeInUp = {
@@ -36,20 +37,18 @@ const TeamMember = ({ name, role, image }) => (
     variants={fadeInUp}
   >
     <div className="relative overflow-hidden rounded-2xl mb-4 mx-auto w-48 h-48 sm:w-56 sm:h-56">
-      {/* Grayscale to color on hover */}
+      {/* Image */}
       <motion.div
         className="w-full h-full bg-gray-200"
         style={{
-          backgroundImage: `url(${image || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop'})`,
+          backgroundImage: `url(${image})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
         whileHover={{ 
-          filter: 'grayscale(0%)',
           scale: 1.05
         }}
         transition={{ duration: 0.5 }}
-        initial={{ filter: 'grayscale(100%)' }}
       />
       {/* Overlay on hover */}
       <motion.div 
@@ -74,7 +73,7 @@ const FeatureCard = ({ icon, title, description, delay }) => (
     }}
   >
     <div className="w-14 h-14 bg-forest-green/10 rounded-xl flex items-center justify-center mb-6">
-      <span className="text-3xl">{icon}</span>
+      {icon}
     </div>
     <h3 className="text-xl font-semibold text-gray-900 mb-3">{title}</h3>
     <p className="text-gray-600 leading-relaxed">{description}</p>
@@ -228,19 +227,31 @@ const About = () => {
             variants={staggerContainer}
           >
             <FeatureCard 
-              icon="🎯"
+              icon={
+                <svg className="w-8 h-8 text-forest-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+              }
               title="Expertise"
               description="Over a decade of experience curating bespoke journeys across India's most remarkable destinations. Our travel designers know every hidden gem."
               delay={0}
             />
             <FeatureCard 
-              icon="🛡️"
+              icon={
+                <svg className="w-8 h-8 text-forest-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              }
               title="Safety First"
               description="Your security is our priority. All trips include certified guides, emergency protocols, and comprehensive travel insurance coverage."
               delay={0.15}
             />
             <FeatureCard 
-              icon="✨"
+              icon={
+                <svg className="w-8 h-8 text-forest-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+              }
               title="Authentic Experiences"
               description="We connect you with local communities, traditional artisans, and off-beat locations that most travelers never get to experience."
               delay={0.3}
@@ -309,31 +320,16 @@ const About = () => {
           </motion.div>
           
           <motion.div 
-            className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8"
+            className="grid sm:grid-cols-1 lg:grid-cols-1 gap-8 justify-items-center"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
             variants={staggerContainer}
           >
             <TeamMember 
-              name="Amit Sharma" 
+              name="Muralitharan" 
               role="Founder & CEO" 
-              image="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop"
-            />
-            <TeamMember 
-              name="Priya Patel" 
-              role="Head of Operations" 
-              image="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop"
-            />
-            <TeamMember 
-              name="Rahul Verma" 
-              role="Lead Tour Designer" 
-              image="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop"
-            />
-            <TeamMember 
-              name="Ananya Singh" 
-              role="Experience Curator" 
-              image="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop"
+              image={muralitharan}
             />
           </motion.div>
         </div>

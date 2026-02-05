@@ -52,6 +52,8 @@ export default function AdminTrips() {
     highlights: '',
     imageUrl: '',
     imageFile: null,
+    gallery: [],
+    galleryFiles: [],
     itinerary: [{ day: 1, title: 'Day 1', description: '' }],
   });
 
@@ -132,6 +134,15 @@ export default function AdminTrips() {
       return;
     }
 
+    // Upload gallery images if new files selected
+    let gallery = formData.gallery || [];
+    if (formData.galleryFiles && formData.galleryFiles.length > 0) {
+      const uploadedGallery = await Promise.all(
+        formData.galleryFiles.map(file => handleImageUpload(file))
+      );
+      gallery = [...gallery, ...uploadedGallery.filter(Boolean)].slice(0, 6);
+    }
+
     const tripData = {
       title: formData.title,
       location: formData.location,
@@ -143,6 +154,7 @@ export default function AdminTrips() {
       description: formData.description,
       highlights: formData.highlights.split(',').map((h) => h.trim()).filter(Boolean),
       imageUrl,
+      gallery,
       itinerary: formData.itinerary.filter((day) => day.title && day.description),
       updatedAt: new Date().toISOString(),
     };
@@ -185,6 +197,7 @@ export default function AdminTrips() {
       duration: trip.duration?.toString() || '',
       highlights: trip.highlights?.join(', ') || '',
       imageFile: null,
+      galleryFiles: [],
     });
     setShowForm(true);
   };
@@ -203,6 +216,8 @@ export default function AdminTrips() {
       highlights: '',
       imageUrl: '',
       imageFile: null,
+      gallery: [],
+      galleryFiles: [],
       itinerary: [{ day: 1, title: 'Day 1', description: '' }],
     });
     setEditingTrip(null);
@@ -421,6 +436,53 @@ export default function AdminTrips() {
                     alt="Preview"
                     className="mt-3 h-32 rounded-lg object-cover"
                   />
+                )}
+              </div>
+
+              {/* Gallery Images Upload */}
+              <div>
+                <label className="block text-sm font-medium text-white/90 mb-1">
+                  Gallery Images {editingTrip && '(leave empty to keep current)'} <span className="text-white/50">(Max: 500KB each, up to 6 images)</span>
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files).slice(0, 6);
+                    const validFiles = files.filter(file => {
+                      if (!checkImageSize(file)) {
+                        return false;
+                      }
+                      return true;
+                    });
+                    setFormData({ ...formData, galleryFiles: validFiles });
+                  }}
+                  className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#4CAF50] file:text-white hover:file:bg-[#45a049]"
+                />
+                {/* Show selected files info */}
+                {formData.galleryFiles.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {formData.galleryFiles.map((file, index) => (
+                      <div key={index} className="flex items-center gap-2 text-sm bg-white/5 px-2 py-1 rounded">
+                        <span className="text-green-400">✓</span>
+                        <span className="text-white/80 truncate max-w-32">{file.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {/* Show existing gallery */}
+                {(formData.gallery?.length > 0 || editingTrip?.gallery?.length > 0) && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {(formData.gallery || editingTrip?.gallery).map((img, index) => (
+                      <img
+                        key={index}
+                        src={img}
+                        alt={`Gallery ${index + 1}`}
+                        className="h-20 w-20 rounded-lg object-cover"
+                      />
+                    ))}
+                  </div>
                 )}
               </div>
 
