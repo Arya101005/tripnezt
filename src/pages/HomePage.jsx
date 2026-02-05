@@ -96,14 +96,32 @@ export default function HomePage() {
     return () => clearTimeout(timer);
   }, [user, authLoading, navigate]);
 
-  // Show loading or redirecting state
-  if (authLoading || (!user && !loading)) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-forest-green border-t-transparent rounded-full" />
-      </div>
-    );
-  }
+  // Fetch featured trips
+  useEffect(() => {
+    const fetchFeaturedTrips = async () => {
+      try {
+        const q = query(
+          collection(db, 'trips'),
+          orderBy('createdAt', 'desc'),
+          limit(8)
+        );
+        const snapshot = await getDocs(q);
+        const trips = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setFeaturedTrips(trips);
+      } catch (err) {
+        console.error('Error fetching trips:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedTrips();
+  }, []);
+
+  // Search trips function
   const searchTrips = useCallback(async (searchTerm) => {
     if (!searchTerm || searchTerm.length < 2) {
       setSearchResults([]);
@@ -141,30 +159,6 @@ export default function HomePage() {
     }
   }, []);
 
-  useEffect(() => {
-    const fetchFeaturedTrips = async () => {
-      try {
-        const q = query(
-          collection(db, 'trips'),
-          orderBy('createdAt', 'desc'),
-          limit(8)
-        );
-        const snapshot = await getDocs(q);
-        const trips = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setFeaturedTrips(trips);
-      } catch (err) {
-        console.error('Error fetching trips:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFeaturedTrips();
-  }, []);
-
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchQuery(value);
@@ -184,9 +178,15 @@ export default function HomePage() {
     navigate(`/trips?category=${categoryId}`);
   };
 
-  // Don't render if not authenticated (will redirect)
-  // Navigation is handled by useEffect above
-  
+  // Show loading or redirecting state
+  if (authLoading || (!user && !loading)) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-forest-green border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
