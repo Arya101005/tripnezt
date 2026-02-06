@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 import { db } from '../firebase';
+import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import BookingModal from '../components/BookingModal';
 import TripCard from '../components/TripCard';
@@ -20,11 +21,13 @@ const DEFAULT_GALLERY_IMAGES = [
 export default function TripDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [relatedTrips, setRelatedTrips] = useState([]);
   const [relatedImages, setRelatedImages] = useState([]);
+  const [userBookings, setUserBookings] = useState([]);
 
   useEffect(() => {
     const fetchTrip = async () => {
@@ -109,9 +112,28 @@ export default function TripDetails() {
         setRelatedImages(DEFAULT_GALLERY_IMAGES);
       }
     };
-
+    
+    const fetchUserBookings = async () => {
+      if (!user) return;
+      try {
+        const q = query(
+          collection(db, 'bookings'),
+          where('userId', '==', user.uid),
+          where('tripId', '==', id)
+        );
+        const snapshot = await getDocs(q);
+        const bookings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setUserBookings(bookings);
+      } catch (err) {
+        console.error('Error fetching user bookings:', err);
+      }
+    };
+    
     fetchTrip();
-  }, [id]);
+    if (user) {
+      fetchUserBookings();
+    }
+  }, [id, user]);
 
   if (loading) {
     return (
@@ -163,6 +185,14 @@ export default function TripDetails() {
     }
     return DEFAULT_GALLERY_IMAGES;
   };
+
+  // Check if user has an approved booking for this trip
+  const hasApprovedBooking = userBookings.some(booking => booking.status === 'Approved');
+
+  // Check if user has a pending or waitlisted booking
+  const hasPendingBooking = userBookings.some(booking => 
+    booking.status === 'Pending Review' || booking.status === 'Waitlisted'
+  );
 
   return (
     <div className="min-h-screen bg-white">
@@ -335,16 +365,34 @@ export default function TripDetails() {
                 </div>
               </div>
 
-              <button
-                onClick={() => setShowBookingModal(true)}
-                className="w-full py-4 bg-gradient-to-r from-forest-green to-teal-500 text-white font-bold text-lg rounded-xl hover:shadow-xl hover:shadow-forest-green/30 transition-all duration-300"
-              >
-                Reserve Your Spot
-              </button>
+              {/* Hide button if user has approved booking */}
+              {!hasApprovedBooking && (
+                <button
+                  onClick={() => setShowBookingModal(true)}
+                  className="w-full py-4 bg-gradient-to-r from-forest-green to-teal-500 text-white font-bold text-lg rounded-xl hover:shadow-xl hover:shadow-forest-green/30 transition-all duration-300"
+                >
+                  {hasPendingBooking ? 'Booking Under Review' : 'Reserve Your Spot'}
+                </button>
+              )}
 
-              <p className="text-center text-gray-500 text-sm mt-4">
-                Free cancellation up to 7 days before
-              </p>
+              {/* Show approved status message */}
+              {hasApprovedBooking && (
+                <div className="w-full py-4 bg-green-50 text-green-700 font-semibold text-lg rounded-xl text-center border border-green-200">
+                  Booking Confirmed ✓
+                </div>
+              )}
+
+              {hasPendingBooking && !hasApprovedBooking && (
+                <p className="text-center text-amber-600 text-sm mt-4">
+                  Your booking is being reviewed. We'll update you soon!
+                </p>
+              )}
+
+              {!hasPendingBooking && !hasApprovedBooking && (
+                <p className="text-center text-gray-500 text-sm mt-4">
+                  Free cancellation up to 7 days before
+                </p>
+              )}
             </div>
           </div>
         </div>

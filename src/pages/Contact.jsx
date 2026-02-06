@@ -70,22 +70,26 @@ const Contact = () => {
     message: ''
   });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
   
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     
-    // Create mailto link with form data
+    // Create mailto link with form data - sends to both admin@tripnezt.in and Muralitharan0826@gmail.com
     const subject = encodeURIComponent(formData.subject || 'Contact Form Submission');
     const body = encodeURIComponent(
       `Name: ${formData.name}\n\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`
     );
     
-    // Open default email client
-    window.location.href = `mailto:admin@tripnezt.in?subject=${subject}&body=${body}`;
+    // Open default email client with pre-filled data - send to both recipients
+    window.location.href = `mailto:admin@tripnezt.in,Muralitharan0826@gmail.com?subject=${subject}&body=${body}`;
     
+    // Show success message
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 5000);
     setFormData({ name: '', email: '', subject: '', message: '' });
+    setLoading(false);
   };
   
   const handleChange = (e) => {
@@ -286,7 +290,7 @@ const Contact = () => {
                       </svg>
                     </div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">Message Sent!</h3>
-                    <p className="text-gray-600">Thank you for reaching out. We'll get back to you within 24 hours.</p>
+                    <p className="text-gray-600">Your message has been sent to admin@tripnezt.in and Muralitharan0826@gmail.com. We'll get back to you within 24 hours.</p>
                   </motion.div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-6">

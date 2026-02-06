@@ -268,42 +268,6 @@ export default function Hero() {
             </motion.div>
           </form>
         </motion.div>
-
-        {/* Quick Stats with fade in */}
-        <motion.div 
-          className="mt-10 flex justify-center gap-12"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 1.5 }}
-        >
-          <motion.div 
-            className="text-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.6 }}
-          >
-            <p className="text-3xl font-bold text-white">500+</p>
-            <p className="text-white/70 text-sm">Amazing Trips</p>
-          </motion.div>
-          <motion.div 
-            className="text-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.7 }}
-          >
-            <p className="text-3xl font-bold text-white">28</p>
-            <p className="text-white/70 text-sm">States</p>
-          </motion.div>
-          <motion.div 
-            className="text-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.8 }}
-          >
-            <p className="text-3xl font-bold text-white">50K+</p>
-            <p className="text-white/70 text-sm">Happy Travelers</p>
-          </motion.div>
-        </motion.div>
       </div>
     </section>
   );

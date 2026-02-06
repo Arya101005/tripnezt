@@ -47,7 +47,7 @@ export default function AdminTrips() {
     price: '',
     duration: '',
     durationType: 'Nights',
-    category: 'mountains',
+    categories: ['mountains'],
     description: '',
     highlights: '',
     imageUrl: '',
@@ -150,7 +150,8 @@ export default function AdminTrips() {
       price: parseInt(formData.price) || 0,
       duration: parseInt(formData.duration) || 0,
       durationType: formData.durationType,
-      category: formData.category,
+      categories: formData.categories,
+      category: formData.categories[0] || 'mountains', // Keep for backward compatibility
       description: formData.description,
       highlights: formData.highlights.split(',').map((h) => h.trim()).filter(Boolean),
       imageUrl,
@@ -196,6 +197,7 @@ export default function AdminTrips() {
       price: trip.price?.toString() || '',
       duration: trip.duration?.toString() || '',
       highlights: trip.highlights?.join(', ') || '',
+      categories: trip.categories || (trip.category ? [trip.category] : ['mountains']),
       imageFile: null,
       galleryFiles: [],
     });
@@ -211,7 +213,7 @@ export default function AdminTrips() {
       price: '',
       duration: '',
       durationType: 'Nights',
-      category: 'mountains',
+      categories: ['mountains'],
       description: '',
       highlights: '',
       imageUrl: '',
@@ -355,17 +357,34 @@ export default function AdminTrips() {
                 </div>
               </div>
 
-              {/* Category */}
+              {/* Categories */}
               <div>
-                <label className="block text-sm font-medium text-white/90 mb-2">Category</label>
+                <label className="block text-sm font-medium text-white/90 mb-2">Categories (select multiple)</label>
                 <div className="flex flex-wrap gap-2">
                   {CATEGORIES.map((cat) => (
                     <button
                       key={cat.id}
                       type="button"
-                      onClick={() => setFormData({ ...formData, category: cat.id })}
+                      onClick={() => {
+                        const currentCategories = formData.categories || [];
+                        if (currentCategories.includes(cat.id)) {
+                          // Remove category if already selected (but keep at least one)
+                          if (currentCategories.length > 1) {
+                            setFormData({
+                              ...formData,
+                              categories: currentCategories.filter((c) => c !== cat.id),
+                            });
+                          }
+                        } else {
+                          // Add category
+                          setFormData({
+                            ...formData,
+                            categories: [...currentCategories, cat.id],
+                          });
+                        }
+                      }}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                        formData.category === cat.id
+                        formData.categories?.includes(cat.id)
                           ? 'bg-[#FF9933] text-[#000080]'
                           : 'bg-white/10 text-white hover:bg-white/20'
                       }`}
