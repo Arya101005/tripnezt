@@ -100,8 +100,9 @@ export default function AdminLeads() {
   };
 
   const handleWhatsApp = (phone, name) => {
-    const message = `Hi ${name}, thank you for your interest in our travel packages. How can I help you today?`;
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+    const companyName = 'Tripnezt';
+    const message = `Namaste ${name}! 🙏%0A%0AGreetings from *${companyName}* - Your Trusted Travel Partner!%0A%0AThank you for your interest in our travel packages.%0A%0AHow can I assist you today?%0A%0A*Why Choose ${companyName}?*%0A✓ Authentic India Experiences%0A✓ Best Prices Guaranteed%0A✓ 24/7 Support%0A✓ Verified Local Partners%0A%0ALooking forward to plan your next adventure! 🌍✈️`;
+    window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
   };
 
   const formatDate = (timestamp) => {

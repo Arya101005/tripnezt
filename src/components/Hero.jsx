@@ -71,7 +71,7 @@ export default function Hero() {
   const [search, setSearch] = useState({
     state: '',
     budget: '',
-    category: 'all',
+    categories: [],
   });
 
   // Preload all images
@@ -95,8 +95,21 @@ export default function Hero() {
     const params = new URLSearchParams();
     if (search.state) params.set('state', search.state);
     if (search.budget) params.set('budget', search.budget);
-    if (search.category && search.category !== 'all') params.set('category', search.category);
+    if (search.categories.length > 0) params.set('categories', search.categories.join(','));
     navigate(`/trips?${params.toString()}`);
+  };
+
+  // Toggle category selection
+  const toggleCategory = (categoryId) => {
+    setSearch(prev => {
+      if (categoryId === 'all') {
+        return { ...prev, categories: [] };
+      }
+      const newCategories = prev.categories.includes(categoryId)
+        ? prev.categories.filter(c => c !== categoryId)
+        : [...prev.categories, categoryId];
+      return { ...prev, categories: newCategories };
+    });
   };
 
   return (
@@ -244,13 +257,32 @@ export default function Hero() {
               }}
             >
               <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                {CATEGORIES.map((cat, index) => (
+                {/* All button */}
+                <motion.button
+                  key="all"
+                  type="button"
+                  onClick={() => toggleCategory('all')}
+                  className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                    search.categories.length === 0
+                      ? 'bg-gradient-to-r from-forest-green to-teal-500 text-white shadow-lg shadow-forest-green/25'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                  variants={{
+                    hidden: { opacity: 0, scale: 0.8 },
+                    visible: { opacity: 1, scale: 1 }
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  All
+                </motion.button>
+                {CATEGORIES.filter(c => c.id !== 'all').map((cat, index) => (
                   <motion.button
                     key={cat.id}
                     type="button"
-                    onClick={() => setSearch({ ...search, category: cat.id })}
+                    onClick={() => toggleCategory(cat.id)}
                     className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                      search.category === cat.id
+                      search.categories.includes(cat.id)
                         ? 'bg-gradient-to-r from-forest-green to-teal-500 text-white shadow-lg shadow-forest-green/25'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}

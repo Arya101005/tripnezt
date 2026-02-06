@@ -37,7 +37,6 @@ export default function AdminTrips() {
   const [showForm, setShowForm] = useState(false);
   const [editingTrip, setEditingTrip] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [imageWarning, setImageWarning] = useState('');
   const { showError, showSuccess, showWarning } = useToast();
 
   const [formData, setFormData] = useState({
@@ -47,7 +46,7 @@ export default function AdminTrips() {
     price: '',
     duration: '',
     durationType: 'Nights',
-    categories: ['mountains'],
+    categories: [],
     description: '',
     highlights: '',
     imageUrl: '',
@@ -95,7 +94,7 @@ export default function AdminTrips() {
     const maxSize = 500 * 1024; // 500KB
     if (file.size > maxSize) {
       const sizeDiff = formatFileSize(file.size - maxSize);
-      showWarning(`Image size (${formatFileSize(file.size)}) exceeds the limit by ${sizeDiff}. Please compress your image to under 500KB.`);
+      showWarning(`Image size exceeds limit by ${sizeDiff}. Please compress to under 500KB.`);
       return false;
     }
     return true;
@@ -106,7 +105,6 @@ export default function AdminTrips() {
     if (!file) return null;
     setUploading(true);
     try {
-      // Convert to Base64
       const base64 = await convertToBase64(file);
       setUploading(false);
       return base64;
@@ -117,9 +115,25 @@ export default function AdminTrips() {
     }
   };
 
+  // Toggle category selection
+  const toggleCategory = (categoryId) => {
+    setFormData(prev => {
+      const newCategories = prev.categories.includes(categoryId)
+        ? prev.categories.filter(c => c !== categoryId)
+        : [...prev.categories, categoryId];
+      return { ...prev, categories: newCategories };
+    });
+  };
+
   // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate categories
+    if (formData.categories.length === 0) {
+      showError('Please select at least one category');
+      return;
+    }
 
     // Upload image if new file selected
     let imageUrl = formData.imageUrl;
@@ -151,7 +165,6 @@ export default function AdminTrips() {
       duration: parseInt(formData.duration) || 0,
       durationType: formData.durationType,
       categories: formData.categories,
-      category: formData.categories[0] || 'mountains', // Keep for backward compatibility
       description: formData.description,
       highlights: formData.highlights.split(',').map((h) => h.trim()).filter(Boolean),
       imageUrl,
@@ -163,13 +176,13 @@ export default function AdminTrips() {
     try {
       if (editingTrip) {
         await updateDoc(doc(db, 'trips', editingTrip.id), tripData);
-        showSuccess('Trip updated!');
+        showSuccess('Trip updated successfully!');
       } else {
         await addDoc(collection(db, 'trips'), {
           ...tripData,
           createdAt: new Date().toISOString(),
         });
-        showSuccess('Trip created!');
+        showSuccess('Trip created successfully!');
       }
       resetForm();
     } catch (err) {
@@ -197,7 +210,6 @@ export default function AdminTrips() {
       price: trip.price?.toString() || '',
       duration: trip.duration?.toString() || '',
       highlights: trip.highlights?.join(', ') || '',
-      categories: trip.categories || (trip.category ? [trip.category] : ['mountains']),
       imageFile: null,
       galleryFiles: [],
     });
@@ -213,7 +225,7 @@ export default function AdminTrips() {
       price: '',
       duration: '',
       durationType: 'Nights',
-      categories: ['mountains'],
+      categories: [],
       description: '',
       highlights: '',
       imageUrl: '',
@@ -244,13 +256,20 @@ export default function AdminTrips() {
     setFormData({ ...formData, itinerary: newItinerary });
   };
 
+  // Delete itinerary day
+  const deleteItineraryDay = (index) => {
+    const newItinerary = formData.itinerary.filter((_, i) => i !== index);
+    const reindexedItinerary = newItinerary.map((day, i) => ({ ...day, day: i + 1 }));
+    setFormData({ ...formData, itinerary: reindexedItinerary });
+  };
+
   return (
-    <div className="p-6">
+    <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-white">Manage Trips</h2>
-          <p className="text-white/70">Create, edit, and delete trip packages</p>
+          <h2 className="text-2xl font-bold text-gray-900">Manage Trips</h2>
+          <p className="text-gray-600">Create, edit, and delete trip packages</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
@@ -357,34 +376,17 @@ export default function AdminTrips() {
                 </div>
               </div>
 
-              {/* Categories */}
+              {/* Multi-Select Categories */}
               <div>
-                <label className="block text-sm font-medium text-white/90 mb-2">Categories (select multiple)</label>
+                <label className="block text-sm font-medium text-white/90 mb-2">Categories (Select Multiple)</label>
                 <div className="flex flex-wrap gap-2">
                   {CATEGORIES.map((cat) => (
                     <button
                       key={cat.id}
                       type="button"
-                      onClick={() => {
-                        const currentCategories = formData.categories || [];
-                        if (currentCategories.includes(cat.id)) {
-                          // Remove category if already selected (but keep at least one)
-                          if (currentCategories.length > 1) {
-                            setFormData({
-                              ...formData,
-                              categories: currentCategories.filter((c) => c !== cat.id),
-                            });
-                          }
-                        } else {
-                          // Add category
-                          setFormData({
-                            ...formData,
-                            categories: [...currentCategories, cat.id],
-                          });
-                        }
-                      }}
+                      onClick={() => toggleCategory(cat.id)}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                        formData.categories?.includes(cat.id)
+                        formData.categories.includes(cat.id)
                           ? 'bg-[#FF9933] text-[#000080]'
                           : 'bg-white/10 text-white hover:bg-white/20'
                       }`}
@@ -393,6 +395,11 @@ export default function AdminTrips() {
                     </button>
                   ))}
                 </div>
+                {formData.categories.length > 0 && (
+                  <p className="text-white/60 text-sm mt-2">
+                    Selected: {formData.categories.map(c => CATEGORIES.find(cat => cat.id === c)?.label).join(', ')}
+                  </p>
+                )}
               </div>
 
               {/* Description */}
@@ -441,67 +448,12 @@ export default function AdminTrips() {
                   }}
                   className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#FF9933] file:text-[#000080] hover:file:bg-[#ffaa44]"
                 />
-                {/* Show selected file info */}
-                {formData.imageFile && (
-                  <div className="mt-2 flex items-center gap-2 text-sm">
-                    <span className="text-green-400">✓ Selected:</span>
-                    <span className="text-white/80">{formData.imageFile.name}</span>
-                    <span className="text-white/50">({formatFileSize(formData.imageFile.size)})</span>
-                  </div>
-                )}
                 {(formData.imageUrl || editingTrip?.imageUrl) && (
                   <img
                     src={formData.imageUrl || editingTrip?.imageUrl}
                     alt="Preview"
                     className="mt-3 h-32 rounded-lg object-cover"
                   />
-                )}
-              </div>
-
-              {/* Gallery Images Upload */}
-              <div>
-                <label className="block text-sm font-medium text-white/90 mb-1">
-                  Gallery Images {editingTrip && '(leave empty to keep current)'} <span className="text-white/50">(Max: 500KB each, up to 6 images)</span>
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={(e) => {
-                    const files = Array.from(e.target.files).slice(0, 6);
-                    const validFiles = files.filter(file => {
-                      if (!checkImageSize(file)) {
-                        return false;
-                      }
-                      return true;
-                    });
-                    setFormData({ ...formData, galleryFiles: validFiles });
-                  }}
-                  className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#4CAF50] file:text-white hover:file:bg-[#45a049]"
-                />
-                {/* Show selected files info */}
-                {formData.galleryFiles.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {formData.galleryFiles.map((file, index) => (
-                      <div key={index} className="flex items-center gap-2 text-sm bg-white/5 px-2 py-1 rounded">
-                        <span className="text-green-400">✓</span>
-                        <span className="text-white/80 truncate max-w-32">{file.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {/* Show existing gallery */}
-                {(formData.gallery?.length > 0 || editingTrip?.gallery?.length > 0) && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {(formData.gallery || editingTrip?.gallery).map((img, index) => (
-                      <img
-                        key={index}
-                        src={img}
-                        alt={`Gallery ${index + 1}`}
-                        className="h-20 w-20 rounded-lg object-cover"
-                      />
-                    ))}
-                  </div>
                 )}
               </div>
 
@@ -512,47 +464,58 @@ export default function AdminTrips() {
                   <div key={index} className="mb-4 p-4 rounded-xl bg-white/5 border border-white/10">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-white/70 text-sm">Day {day.day}</span>
+                      {formData.itinerary.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => deleteItineraryDay(index)}
+                          className="ml-auto text-red-400 hover:text-red-300"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      )}
                       <input
                         type="text"
                         value={day.title}
                         onChange={(e) => updateItinerary(index, 'title', e.target.value)}
                         placeholder="Day title"
-                        className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#FF9933]"
+                        className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#FF9933] text-sm"
                       />
                     </div>
                     <textarea
                       value={day.description}
                       onChange={(e) => updateItinerary(index, 'description', e.target.value)}
-                      placeholder="What you'll do this day..."
+                      placeholder="Day description..."
                       rows={2}
-                      className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#FF9933]"
+                      className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#FF9933] text-sm"
                     />
                   </div>
                 ))}
                 <button
                   type="button"
                   onClick={addItineraryDay}
-                  className="px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 text-sm"
+                  className="mt-2 px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition text-sm"
                 >
                   + Add Day
                 </button>
               </div>
 
-              {/* Submit Buttons */}
+              {/* Submit Button */}
               <div className="flex gap-4 pt-4">
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="flex-1 py-3 rounded-xl bg-white/10 text-white hover:bg-white/20 font-medium transition"
-                >
-                  Cancel
-                </button>
                 <button
                   type="submit"
                   disabled={uploading}
-                  className="flex-1 py-3 rounded-xl bg-[#FF9933] text-[#000080] font-semibold hover:bg-[#ffaa44] transition disabled:opacity-50"
+                  className="flex-1 py-3 px-6 rounded-xl bg-[#FF9933] text-[#000080] font-semibold hover:bg-[#ffaa44] transition disabled:opacity-50"
                 >
-                  {uploading ? 'Uploading...' : editingTrip ? 'Update Trip' : 'Create Trip'}
+                  {uploading ? 'Uploading...' : (editingTrip ? 'Update Trip' : 'Create Trip')}
+                </button>
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="px-6 py-3 rounded-xl bg-white/10 text-white hover:bg-white/20 transition"
+                >
+                  Cancel
                 </button>
               </div>
             </form>
@@ -560,59 +523,85 @@ export default function AdminTrips() {
         </div>
       )}
 
-      {/* Trips List */}
-      {loading ? (
-        <div className="text-white text-center py-12">Loading trips...</div>
-      ) : trips.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="text-6xl mb-4">📦</div>
-          <h3 className="text-xl font-bold text-white mb-2">No Trips Yet</h3>
-          <p className="text-white/70 mb-6">Create your first trip package to get started.</p>
-          <button
-            onClick={() => setShowForm(true)}
-            className="px-6 py-3 rounded-xl bg-[#FF9933] text-[#000080] font-semibold hover:bg-[#ffaa44] transition"
-          >
-            Create First Trip
-          </button>
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {trips.map((trip) => (
+      {/* Trips Grid */}
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {loading ? (
+          <div className="col-span-full text-gray-600">Loading trips...</div>
+        ) : trips.length === 0 ? (
+          <div className="col-span-full text-gray-600 text-center py-12">
+            <p className="text-lg">No trips yet.</p>
+            <p className="text-sm mt-2">Click "Add New Trip" to create your first trip!</p>
+          </div>
+        ) : (
+          trips.map((trip) => (
             <div
               key={trip.id}
-              className="bg-white/10 rounded-xl p-4 border border-white/20"
+              className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200"
             >
-              <div className="flex gap-4">
+              {/* Image */}
+              <div className="relative h-48">
                 <img
-                  src={trip.imageUrl || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=200'}
+                  src={trip.imageUrl || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=600'}
                   alt={trip.title}
-                  className="w-24 h-24 rounded-lg object-cover"
+                  className="w-full h-full object-cover"
                 />
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-white truncate">{trip.title}</h4>
-                  <p className="text-white/70 text-sm">{trip.location}, {trip.state}</p>
-                  <p className="text-[#FF9933] font-bold">₹{trip.price?.toLocaleString('en-IN')}</p>
-                  <p className="text-white/50 text-xs">{trip.duration} {trip.durationType}</p>
+                <div className="absolute top-3 right-3">
+                  <span className="px-3 py-1 bg-white/90 backdrop-blur rounded-full text-xs font-medium text-gray-800">
+                    ₹{trip.price?.toLocaleString()}
+                  </span>
                 </div>
               </div>
-              <div className="flex gap-2 mt-4">
-                <button
-                  onClick={() => handleEdit(trip)}
-                  className="flex-1 py-2 rounded-lg bg-[#FF9933]/20 text-[#FF9933] hover:bg-[#FF9933]/30 text-sm font-medium transition"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(trip)}
-                  className="flex-1 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 text-sm font-medium transition"
-                >
-                  Delete
-                </button>
+
+              {/* Content */}
+              <div className="p-5">
+                <h3 className="text-lg font-bold text-gray-900 mb-1">{trip.title}</h3>
+                <p className="text-gray-600 text-sm mb-3">{trip.location}, {trip.state}</p>
+
+                {/* Categories */}
+                <div className="flex flex-wrap gap-1 mb-4">
+                  {trip.categories?.slice(0, 3).map((cat) => (
+                    <span
+                      key={cat}
+                      className="text-xs px-2 py-0.5 bg-[#000080]/10 text-[#000080] rounded-full"
+                    >
+                      {cat}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Duration */}
+                <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>{trip.duration} {trip.durationType}</span>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEdit(trip)}
+                    className="flex-1 py-2.5 rounded-lg bg-[#000080] text-white font-medium hover:bg-[#000060] transition flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                    Edit Trip
+                  </button>
+                  <button
+                    onClick={() => handleDelete(trip)}
+                    className="px-4 py-2.5 rounded-lg bg-red-100 text-red-600 font-medium hover:bg-red-200 transition"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 }

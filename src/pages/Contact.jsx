@@ -76,14 +76,14 @@ const Contact = () => {
     e.preventDefault();
     setLoading(true);
     
-    // Create mailto link with form data - sends to both admin@tripnezt.in and Muralitharan0826@gmail.com
+    // Create mailto link with form data
     const subject = encodeURIComponent(formData.subject || 'Contact Form Submission');
     const body = encodeURIComponent(
       `Name: ${formData.name}\n\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`
     );
     
-    // Open default email client with pre-filled data - send to both recipients
-    window.location.href = `mailto:admin@tripnezt.in,Muralitharan0826@gmail.com?subject=${subject}&body=${body}`;
+    // Open default email client with pre-filled data
+    window.location.href = `mailto:admin@tripnezt.in?subject=${subject}&body=${body}`;
     
     // Show success message
     setSubmitted(true);
@@ -228,7 +228,7 @@ const Contact = () => {
                 variants={fadeInUp}
               >
                 <motion.a
-                  href="https://wa.me/918610414032"
+                  href="https://wa.me/918610414032?text=Namaste%20Tripnezt%20Team!%20%F0%9F%99%82%0A%0AI%27m%20interested%20in%20your%20travel%20packages.%20Please%20share%20more%20details.%0A%0AThank%20you!"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-3 px-6 py-4 bg-[#25D366] text-white font-semibold rounded-full hover:bg-[#20BD5A] transition-colors shadow-lg"
@@ -290,7 +290,7 @@ const Contact = () => {
                       </svg>
                     </div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">Message Sent!</h3>
-                    <p className="text-gray-600">Your message has been sent to admin@tripnezt.in and Muralitharan0826@gmail.com. We'll get back to you within 24 hours.</p>
+                    <p className="text-gray-600">Your message has been sent to admin@tripnezt.in. We'll get back to you within 24 hours.</p>
                   </motion.div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-6">

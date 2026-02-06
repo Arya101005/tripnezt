@@ -147,7 +147,11 @@ export default function HomePage() {
         const titleMatch = trip.title?.toLowerCase().includes(searchLower);
         const locationMatch = trip.location?.toLowerCase().includes(searchLower);
         const stateMatch = trip.state?.toLowerCase().includes(searchLower);
-        const categoryMatch = trip.category?.toLowerCase().includes(searchLower);
+        // Search in both single category and categories array
+        const categoriesArray = Array.isArray(trip.categories) ? trip.categories : [trip.category];
+        const categoryMatch = categoriesArray.some(cat => 
+          cat?.toLowerCase().includes(searchLower)
+        );
         return titleMatch || locationMatch || stateMatch || categoryMatch;
       });
 

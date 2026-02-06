@@ -10,6 +10,7 @@ export default function TripCard({ trip }) {
     price,
     duration,
     durationType,
+    categories,
     category,
     imageUrl,
     rating,
@@ -19,6 +20,16 @@ export default function TripCard({ trip }) {
   const image = imageUrl || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=600';
   const formattedPrice = price ? `₹${price.toLocaleString('en-IN')}` : 'Contact for Price';
   const durationText = duration && durationType ? `${duration} ${durationType}` : duration || 'Flexible';
+
+  // Get categories as array (support both old single category and new array format)
+  const categoriesArray = Array.isArray(categories) && categories.length > 0 
+    ? categories 
+    : category 
+      ? [category] 
+      : [];
+
+  // Get the first category for display
+  const displayCategory = categoriesArray[0] || 'Trip';
 
   return (
     <motion.div
@@ -43,9 +54,9 @@ export default function TripCard({ trip }) {
             className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           />
           
-          {/* Category Badge */}
+          {/* Category Badge - show first category */}
           <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-sm text-gray-800 text-xs font-semibold shadow-sm">
-            {category?.charAt(0).toUpperCase() + category?.slice(1) || 'Trip'}
+            {displayCategory?.charAt(0).toUpperCase() + displayCategory?.slice(1) || 'Trip'}
           </div>
           
           {/* Rating Badge */}

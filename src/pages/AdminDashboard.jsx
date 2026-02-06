@@ -12,6 +12,7 @@ export default function AdminDashboard() {
   const { showSuccess, showError } = useToast();
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
+  const [trips, setTrips] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [stats, setStats] = useState({
     totalTrips: 0,
@@ -26,6 +27,13 @@ export default function AdminDashboard() {
     const fetchStats = async () => {
       try {
         const tripsSnapshot = await getDocs(collection(db, 'trips'));
+        
+        // Store trips for recent trips section
+        const tripsData = tripsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setTrips(tripsData);
         
         const bookingsQuery = query(
           collection(db, 'bookings'),
@@ -96,6 +104,11 @@ export default function AdminDashboard() {
     } catch (err) {
       showError('Failed to reject admin');
     }
+  };
+
+  // Handle edit trip from dashboard
+  const handleEditTrip = (tripId) => {
+    navigate(`/admin/trips?edit=${tripId}`);
   };
 
   const handleToggleUserStatus = async (userId, currentStatus) => {
@@ -300,7 +313,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <div>
+            <div className="mb-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <button
@@ -347,6 +360,53 @@ export default function AdminDashboard() {
                 </button>
               </div>
             </div>
+
+            {/* Recent Trips with Edit Buttons */}
+            {stats.totalTrips > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Recent Trips</h3>
+                  <button
+                    onClick={() => setActiveTab('trips')}
+                    className="text-forest-green text-sm font-medium hover:underline"
+                  >
+                    View All →
+                  </button>
+                </div>
+                <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                  <div className="divide-y divide-gray-100">
+                    {trips.slice(0, 5).map((trip) => (
+                      <div key={trip.id} className="p-4 flex items-center gap-4 hover:bg-gray-50">
+                        <img
+                          src={trip.imageUrl || 'https://via.placeholder.com/60'}
+                          alt={trip.title}
+                          className="w-14 h-14 rounded-lg object-cover"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 truncate">{trip.title}</p>
+                          <p className="text-sm text-gray-500">{trip.location}, {trip.state}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-900">₹{trip.price?.toLocaleString()}</span>
+                          <button
+                            onClick={() => {
+                              setActiveTab('trips');
+                              setTimeout(() => {
+                                const editBtn = document.querySelector(`[data-trip-id="${trip.id}"]`);
+                                if (editBtn) editBtn.click();
+                              }, 100);
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-forest-green text-white hover:bg-forest-green/90 transition text-sm font-medium"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ) : activeTab === 'users' ? (
           <div className="max-w-5xl mx-auto">

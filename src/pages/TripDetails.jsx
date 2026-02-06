@@ -194,6 +194,9 @@ export default function TripDetails() {
     booking.status === 'Pending Review' || booking.status === 'Waitlisted'
   );
 
+  // Check if user has a rejected booking
+  const hasRejectedBooking = userBookings.some(booking => booking.status === 'Rejected');
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
@@ -382,13 +385,28 @@ export default function TripDetails() {
                 </div>
               )}
 
-              {hasPendingBooking && !hasApprovedBooking && (
+              {/* Show rejected status with option to book again */}
+              {hasRejectedBooking && (
+                <div className="space-y-3">
+                  <div className="w-full py-4 bg-red-50 text-red-700 font-semibold text-lg rounded-xl text-center border border-red-200">
+                    Booking Rejected ❌
+                  </div>
+                  <button
+                    onClick={() => setShowBookingModal(true)}
+                    className="w-full py-3 bg-gradient-to-r from-forest-green to-teal-500 text-white font-bold rounded-xl hover:shadow-xl transition-all duration-300"
+                  >
+                    Book Again
+                  </button>
+                </div>
+              )}
+
+              {hasPendingBooking && !hasApprovedBooking && !hasRejectedBooking && (
                 <p className="text-center text-amber-600 text-sm mt-4">
                   Your booking is being reviewed. We'll update you soon!
                 </p>
               )}
 
-              {!hasPendingBooking && !hasApprovedBooking && (
+              {!hasPendingBooking && !hasApprovedBooking && !hasRejectedBooking && (
                 <p className="text-center text-gray-500 text-sm mt-4">
                   Free cancellation up to 7 days before
                 </p>
