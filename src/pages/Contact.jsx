@@ -201,7 +201,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">Phone</h3>
-                    <p className="text-gray-600 mt-1">+91 8610414032<br/>Mon - Sat: 9AM - 7PM</p>
+                    <p className="text-gray-600 mt-1">+91 8150040327<br/>Mon - Sat: 9AM - 7PM</p>
                   </div>
                 </motion.div>
                 
@@ -228,7 +228,7 @@ const Contact = () => {
                 variants={fadeInUp}
               >
                 <motion.a
-                  href="https://wa.me/918610414032?text=Namaste%20Tripnezt%20Team!%20%F0%9F%99%82%0A%0AI%27m%20interested%20in%20your%20travel%20packages.%20Please%20share%20more%20details.%0A%0AThank%20you!"
+                  href="https://wa.me/918150040327?text=Namaste%20Tripnezt%20Team!%20%F0%9F%99%82%0A%0AI%27m%20interested%20in%20your%20travel%20packages.%20Please%20share%20more%20details.%0A%0AThank%20you!"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-3 px-6 py-4 bg-[#25D366] text-white font-semibold rounded-full hover:bg-[#20BD5A] transition-colors shadow-lg"
