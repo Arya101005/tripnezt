@@ -171,9 +171,9 @@ export default function TripsPage() {
 
     // Category filter - intersection (trip must match ALL selected categories)
     // If no categories selected, show all
-    // Check if any of the trip's categories match any selected category (case-insensitive)
+    // Trip must have ALL selected categories
     const matchesCategories = selectedCategories.length === 0 || 
-      selectedCategories.some(catId => 
+      selectedCategories.every(catId => 
         tripCategories.some(tripCat => 
           tripCat === catId.toLowerCase() || 
           tripCat.includes(catId.toLowerCase())
@@ -314,69 +314,6 @@ export default function TripsPage() {
           </div>
         </div>
       </div>
-
-      {/* Active Filters Display */}
-      {(selectedCategories.length > 0 || selectedState || maxPrice || searchQuery) && (
-        <div className="px-4 sm:px-6 lg:px-8 py-4 bg-gray-50">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-wrap gap-2 items-center">
-              <span className="text-sm text-gray-500 mr-2">Active Filters:</span>
-              {/* Selected Categories */}
-              {selectedCategories.map(catId => {
-                const cat = CATEGORIES.find(c => c.id === catId);
-                return cat ? (
-                  <span key={catId} className="px-3 py-1 bg-forest-green/10 text-forest-green text-sm rounded-full flex items-center gap-2">
-                    {cat.label}
-                    <button onClick={() => handleCategoryToggle(catId)} className="hover:text-red-500">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </span>
-                ) : null;
-              })}
-              {selectedCategories.length > 0 && (
-                <button 
-                  onClick={() => handleCategoryToggle('all')}
-                  className="text-xs text-gray-500 hover:text-gray-700 underline"
-                >
-                  Clear all categories
-                </button>
-              )}
-              {selectedState && (
-                <span className="px-3 py-1 bg-forest-green/10 text-forest-green text-sm rounded-full flex items-center gap-2">
-                  State: {selectedState}
-                  <button onClick={() => handleStateChange('')} className="hover:text-red-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </span>
-              )}
-              {maxPrice && (
-                <span className="px-3 py-1 bg-forest-green/10 text-forest-green text-sm rounded-full flex items-center gap-2">
-                  Max Price: ₹{parseInt(maxPrice).toLocaleString()}
-                  <button onClick={() => handlePriceChange('')} className="hover:text-red-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </span>
-              )}
-              {searchQuery && (
-                <span className="px-3 py-1 bg-forest-green/10 text-forest-green text-sm rounded-full flex items-center gap-2">
-                  Search: "{searchQuery}"
-                  <button onClick={() => setSearchQuery('')} className="hover:text-red-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Trips Grid */}
       <div className="px-4 sm:px-6 lg:px-8 pb-16">

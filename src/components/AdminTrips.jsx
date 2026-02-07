@@ -163,13 +163,17 @@ export default function AdminTrips() {
       state: formData.state,
       price: parseInt(formData.price) || 0,
       duration: parseInt(formData.duration) || 0,
-      durationType: formData.durationType,
-      categories: formData.categories,
-      description: formData.description,
-      highlights: formData.highlights.split(',').map((h) => h.trim()).filter(Boolean),
+      durationType: formData.durationType || 'Nights',
+      categories: formData.categories || [],
+      description: formData.description || '',
+      highlights: typeof formData.highlights === 'string' 
+        ? formData.highlights.split(',').map((h) => h.trim()).filter(Boolean)
+        : [],
       imageUrl,
-      gallery,
-      itinerary: formData.itinerary.filter((day) => day.title && day.description),
+      gallery: Array.isArray(gallery) ? gallery : [],
+      itinerary: Array.isArray(formData.itinerary) 
+        ? formData.itinerary.filter((day) => day && day.title && day.description)
+        : [{ day: 1, title: 'Day 1', description: '' }],
       updatedAt: new Date().toISOString(),
     };
 
@@ -206,12 +210,22 @@ export default function AdminTrips() {
   const handleEdit = (trip) => {
     setEditingTrip(trip);
     setFormData({
-      ...trip,
+      title: trip.title || '',
+      location: trip.location || '',
+      state: trip.state || '',
       price: trip.price?.toString() || '',
       duration: trip.duration?.toString() || '',
-      highlights: trip.highlights?.join(', ') || '',
+      durationType: trip.durationType || 'Nights',
+      categories: trip.categories || [],
+      description: trip.description || '',
+      highlights: Array.isArray(trip.highlights) ? trip.highlights.join(', ') : (trip.highlights || ''),
+      imageUrl: trip.imageUrl || '',
       imageFile: null,
+      gallery: trip.gallery || [],
       galleryFiles: [],
+      itinerary: Array.isArray(trip.itinerary) && trip.itinerary.length > 0 
+        ? trip.itinerary 
+        : [{ day: 1, title: 'Day 1', description: '' }],
     });
     setShowForm(true);
   };
