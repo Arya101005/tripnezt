@@ -20,7 +20,7 @@ export default function AuthPage() {
     password: '',
     phoneNumber: '',
   });
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signOut } = useAuth();
   const { showError, showSuccess } = useToast();
 
   const handleChange = (e) => {
@@ -50,7 +50,17 @@ export default function AuthPage() {
           phoneNumber: phoneNumber?.trim() || '',
           applyAsAdmin,
         });
-        showSuccess(applyAsAdmin ? 'Application submitted. We will review shortly.' : 'Account created!');
+        
+        // Sign out after signup so user can login properly
+        await signOut();
+        
+        // Switch to login mode and show success message
+        setIsLogin(true);
+        if (applyAsAdmin) {
+          showSuccess('Application submitted! Please login after admin approval.');
+        } else {
+          showSuccess('Account created! Please login.');
+        }
       }
     } catch (err) {
       const msg = err.code === 'auth/email-already-in-use'
