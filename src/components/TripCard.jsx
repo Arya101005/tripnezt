@@ -18,7 +18,7 @@ export default function TripCard({ trip }) {
   } = trip;
 
   const image = imageUrl || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=600';
-  const formattedPrice = price ? `₹${price.toLocaleString('en-IN')}` : 'Contact for Price';
+  const formattedPrice = price ? `From ₹${price.toLocaleString('en-IN')}` : 'Contact for Price';
   const durationText = duration && durationType ? `${duration} ${durationType}` : duration || 'Flexible';
 
   // Get categories as array (support both old single category and new array format)

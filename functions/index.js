@@ -26,6 +26,9 @@ const getWhatsAppCredentials = () => ({
  * - whatsapp.business_account_id: WhatsApp Business Account ID
  */
 exports.sendWhatsAppMessage = functions.https.onCall(async (data, context) => {
+  console.log('sendWhatsAppMessage called with data:', JSON.stringify(data));
+  console.log('Auth UID:', context.auth?.uid);
+  
   // Check authentication
   if (!context.auth) {
     throw new functions.https.HttpsError(
@@ -52,6 +55,8 @@ exports.sendWhatsAppMessage = functions.https.onCall(async (data, context) => {
   }
 
   const credentials = getWhatsAppCredentials();
+  console.log('Phone Number ID:', credentials.phoneNumberId ? 'set' : 'NOT SET');
+  console.log('Access Token:', credentials.accessToken ? 'set (' + credentials.accessToken.substring(0, 20) + '...)' : 'NOT SET');
 
   if (!credentials.accessToken || !credentials.phoneNumberId) {
     throw new functions.https.HttpsError(
@@ -63,6 +68,7 @@ exports.sendWhatsAppMessage = functions.https.onCall(async (data, context) => {
   try {
     // Format phone number (remove any non-digits and add country code if needed)
     const formattedPhone = formatPhoneNumber(phoneNumber);
+    console.log('Sending to phone:', formattedPhone);
 
     // Prepare message payload
     const messagePayload = {
@@ -84,6 +90,8 @@ exports.sendWhatsAppMessage = functions.https.onCall(async (data, context) => {
       }
     );
 
+    console.log('WhatsApp API response:', JSON.stringify(response.data));
+
     // Log the message to Firestore for tracking
     const messageLog = {
       phoneNumber: formattedPhone,
@@ -104,6 +112,7 @@ exports.sendWhatsAppMessage = functions.https.onCall(async (data, context) => {
 
   } catch (error) {
     console.error('WhatsApp API Error:', error.response?.data || error.message);
+    console.error('Full error:', error.toString());
 
     // Log failed attempt
     await admin.firestore().collection('whatsappMessages').add({

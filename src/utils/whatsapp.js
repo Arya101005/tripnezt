@@ -1,6 +1,9 @@
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../firebase';
 
+// Vercel API URL (for free tier)
+const VERCEL_API_URL = import.meta.env.VITE_VERCEL_API_URL || '';
+
 /**
  * Send a WhatsApp message to a lead using WhatsApp Business API
  * 
@@ -10,6 +13,28 @@ import { functions } from '../firebase';
  * @returns {Promise<Object>} Response with success status and messageId
  */
 export const sendWhatsAppMessage = async (phoneNumber, message, templateName = null) => {
+  // Try Vercel API first (free tier), fall back to Firebase functions
+  if (VERCEL_API_URL) {
+    try {
+      const response = await fetch(`${VERCEL_API_URL}/api/send-whatsapp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phoneNumber, message, templateName }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Vercel API Error, falling back to Firebase:', error);
+    }
+  }
+  
+  // Fall back to Firebase functions
   try {
     const sendMessage = httpsCallable(functions, 'sendWhatsAppMessage');
     const result = await sendMessage({ phoneNumber, message, templateName });

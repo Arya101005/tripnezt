@@ -31,11 +31,20 @@ const staggerContainer = {
 
 const CATEGORIES = [
   { id: 'mountains', label: 'Mountains', image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=400' },
+  { id: 'hill-stations', label: 'Hill Stations', image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=400' },
   { id: 'beaches', label: 'Beaches', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=400' },
+  { id: 'islands', label: 'Islands', image: 'https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?q=80&w=400' },
+  { id: 'desert', label: 'Desert', image: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=400' },
+  { id: 'lakes', label: 'Lakes', image: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=400' },
+  { id: 'waterfalls', label: 'Waterfalls', image: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?q=80&w=400' },
   { id: 'spiritual', label: 'Spiritual', image: spiritualImg },
   { id: 'wildlife', label: 'Wildlife', image: 'https://images.unsplash.com/photo-1575550959106-5a7defe28b56?q=80&w=400' },
+  { id: 'trekking', label: 'Trekking', image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=400' },
+  { id: 'safari', label: 'Safari', image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=400' },
   { id: 'honeymoon', label: 'Honeymoon', image: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=400' },
+  { id: 'adventure', label: 'Adventure', image: 'https://images.unsplash.com/photo-1527631746610-bca00a040d60?q=80&w=400' },
   { id: 'heritage', label: 'Heritage', image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?q=80&w=400' },
+  { id: 'cultural', label: 'Cultural', image: 'https://images.unsplash.com/photo-1534081333815-ae5019106622?q=80&w=400' },
 ];
 
 const WHY_CHOOSE = [
@@ -290,7 +299,8 @@ export default function HomePage() {
         </motion.div>
         
         <motion.div 
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4"
+          className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x"
+          style={{ scrollBehavior: 'smooth' }}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
@@ -300,10 +310,10 @@ export default function HomePage() {
             <motion.a
               key={category.id}
               href={`/trips?category=${category.id}`}
-              className="group relative rounded-xl overflow-hidden cursor-pointer block"
+              className="group relative rounded-xl overflow-hidden cursor-pointer block flex-shrink-0 w-40 sm:w-48 snap-center"
               variants={fadeInUp}
             >
-              <div className="aspect-[4/3] sm:aspect-square">
+              <div className="aspect-[4/3] sm:aspect-[4/5]">
                 <motion.img
                   src={category.image}
                   alt={category.label}

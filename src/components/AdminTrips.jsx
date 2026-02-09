@@ -14,12 +14,20 @@ import { useToast } from '../context/ToastContext';
 
 const CATEGORIES = [
   { id: 'mountains', label: 'Mountains' },
+  { id: 'hill-stations', label: 'Hill Stations' },
   { id: 'beaches', label: 'Beaches' },
+  { id: 'islands', label: 'Islands' },
+  { id: 'deserts', label: 'Desert' },
+  { id: 'lakes', label: 'Lakes' },
+  { id: 'waterfalls', label: 'Waterfalls' },
   { id: 'spiritual', label: 'Spiritual' },
   { id: 'wildlife', label: 'Wildlife' },
+  { id: 'trekking', label: 'Trekking' },
+  { id: 'safari', label: 'Safari' },
   { id: 'honeymoon', label: 'Honeymoon' },
   { id: 'adventure', label: 'Adventure' },
   { id: 'heritage', label: 'Heritage' },
+  { id: 'cultural', label: 'Cultural' },
 ];
 
 const INDIAN_STATES = [

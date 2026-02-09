@@ -173,7 +173,7 @@ export default function TripDetails() {
     );
   }
 
-  const formattedPrice = trip.price ? `₹${trip.price.toLocaleString('en-IN')}` : 'Contact for Price';
+  const formattedPrice = trip.price ? `From ₹${trip.price.toLocaleString('en-IN')}` : 'Contact for Price';
 
   // Get gallery images from trip data or use related/default
   const getGalleryImages = () => {
