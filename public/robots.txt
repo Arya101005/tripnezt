@@ -1,0 +1,11 @@
+# Robots.txt for TripNezt
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /private/
+Disallow: /.hg/
+Disallow: /.svn/
+Disallow: /CVS/
+
+# Sitemap
+Sitemap: https://www.tripnezt.in/sitemap.xml
