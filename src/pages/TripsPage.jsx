@@ -334,7 +334,7 @@ export default function TripsPage() {
             </div>
           ) : filteredTrips.length === 0 ? (
             <div className="max-w-md mx-auto">
-              <ComingSoonCard />
+              <ComingSoonCard category={selectedCategories.length > 0 ? selectedCategories[0] : null} />
             </div>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

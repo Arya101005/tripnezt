@@ -1,6 +1,25 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
+// Category labels for display
+const CATEGORY_LABELS = {
+  'mountains': 'Mountains',
+  'hill-stations': 'Hill Stations',
+  'beaches': 'Beaches',
+  'islands': 'Islands',
+  'desert': 'Desert',
+  'lakes': 'Lakes',
+  'waterfalls': 'Waterfalls',
+  'spiritual': 'Spiritual',
+  'wildlife': 'Wildlife',
+  'trekking': 'Trekking',
+  'safari': 'Safari',
+  'honeymoon': 'Honeymoon',
+  'adventure': 'Adventure',
+  'heritage': 'Heritage',
+  'cultural': 'Cultural',
+};
+
 export default function TripCard({ trip }) {
   const {
     id,
@@ -116,7 +135,10 @@ export default function TripCard({ trip }) {
 }
 
 // Coming Soon Card for Empty State
-export function ComingSoonCard() {
+export function ComingSoonCard({ category = null }) {
+  // Get category display name
+  const categoryLabel = category ? CATEGORY_LABELS[category] || category : null;
+  
   return (
     <motion.div 
       className="bg-white rounded-2xl overflow-hidden shadow-sm p-8 text-center"
@@ -129,10 +151,21 @@ export function ComingSoonCard() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
-      <h3 className="text-xl font-bold text-gray-800 mb-2">Coming Soon!</h3>
-      <p className="text-gray-500 mb-4">
-        We're curating amazing trips for you. Check back soon!
-      </p>
+      {categoryLabel ? (
+        <>
+          <h3 className="text-xl font-bold text-gray-800 mb-2">No {categoryLabel} Trips Available</h3>
+          <p className="text-gray-500 mb-4">
+            We're curating amazing {categoryLabel.toLowerCase()} trips for you. Stay tuned!
+          </p>
+        </>
+      ) : (
+        <>
+          <h3 className="text-xl font-bold text-gray-800 mb-2">Coming Soon!</h3>
+          <p className="text-gray-500 mb-4">
+            We're curating amazing trips for you. Check back soon!
+          </p>
+        </>
+      )}
       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-forest-green/10 text-forest-green font-semibold">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
