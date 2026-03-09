@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { sendPasswordResetEmail } from 'firebase/auth';
@@ -20,8 +21,16 @@ export default function AuthPage() {
     password: '',
     phoneNumber: '',
   });
-  const { signIn, signUp, signOut } = useAuth();
+  const { signIn, signUp, signOut, userProfile } = useAuth();
   const { showError, showSuccess } = useToast();
+  const navigate = useNavigate();
+
+  // Redirect after login based on user role
+  useEffect(() => {
+    if (userProfile && userProfile.role === 'admin') {
+      navigate('/admin', { replace: true });
+    }
+  }, [userProfile, navigate]);
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -41,8 +50,17 @@ export default function AuthPage() {
 
     try {
       if (isLogin) {
-        await signIn(email.trim(), password);
+        const emailTrimmed = email.trim();
+        const emailLower = email.trim().toLowerCase();
+        await signIn(emailTrimmed, password);
         showSuccess('Welcome back!');
+        // Check email for admin redirect immediately
+        if (emailLower === 'admin@tripnezt.in' || emailLower === 'nogilman00@gmail.com') {
+          navigate('/admin', { replace: true });
+        } else {
+          navigate('/', { replace: true });
+        }
+        return;
       } else {
         const applyAsAdmin = signupType === 'admin';
         await signUp(email.trim(), password, {

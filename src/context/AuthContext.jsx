@@ -10,7 +10,7 @@ import { auth, db } from '../firebase';
 
 const AuthContext = createContext(null);
 
-const PRIMARY_ADMIN_EMAIL = 'Admin@tripnezt.in';
+const PRIMARY_ADMIN_EMAIL = 'admin@tripnezt.in';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -53,12 +53,13 @@ export function AuthProvider({ children }) {
 
       // If still no profile after retries, create one
       if (!profile) {
+        const isPrimaryAdmin = firebaseUser.email.toLowerCase() === PRIMARY_ADMIN_EMAIL.toLowerCase();
         const basicProfile = {
           id: firebaseUser.uid,
           email: firebaseUser.email,
-          name: firebaseUser.displayName || 'User',
-          role: 'user',
-          status: 'active',
+          name: firebaseUser.displayName || (isPrimaryAdmin ? 'Admin' : 'User'),
+          role: isPrimaryAdmin ? 'admin' : 'user',
+          status: isPrimaryAdmin ? 'approved' : 'active',
           phoneNumber: '',
           createdAt: new Date().toISOString(),
         };
@@ -84,7 +85,7 @@ export function AuthProvider({ children }) {
   const signUp = async (email, password, { name, phoneNumber, applyAsAdmin }) => {
     const credential = await createUserWithEmailAndPassword(auth, email, password);
     const uid = credential.user.uid;
-    const isPrimaryAdmin = email.toLowerCase() === PRIMARY_ADMIN_EMAIL;
+    const isPrimaryAdmin = email.toLowerCase() === PRIMARY_ADMIN_EMAIL.toLowerCase();
     const role = applyAsAdmin ? 'admin' : 'user';
     const status = applyAsAdmin
       ? (isPrimaryAdmin ? 'approved' : 'pending')
@@ -106,20 +107,44 @@ export function AuthProvider({ children }) {
   };
 
   const signIn = async (email, password) => {
-    // Check if trying to login as admin with non-primary email
     const isPrimaryAdmin = email.toLowerCase() === PRIMARY_ADMIN_EMAIL;
     
     // First do the authentication
     const credential = await signInWithEmailAndPassword(auth, email, password);
     
-    // Check user profile for admin status
+    // For primary admin, ALWAYS ensure they have admin role and approved status
+    if (isPrimaryAdmin) {
+      const userDoc = await getDoc(doc(db, 'users', credential.user.uid));
+      const profile = userDoc.exists() ? userDoc.data() : {};
+      
+      const updatedProfile = {
+        ...profile,
+        uid: credential.user.uid,
+        email: credential.user.email,
+        name: profile.name || 'Admin',
+        role: 'admin',
+        status: 'approved',
+        phoneNumber: profile.phoneNumber || '',
+        createdAt: profile.createdAt || new Date().toISOString(),
+      };
+      
+      await setDoc(doc(db, 'users', credential.user.uid), updatedProfile);
+      setUserProfile({ id: credential.user.uid, ...updatedProfile });
+      return credential;
+    }
+    
+    // For non-primary admins, check profile
     const userDoc = await getDoc(doc(db, 'users', credential.user.uid));
     if (userDoc.exists()) {
       const profile = userDoc.data();
-      if (profile.role === 'admin' && profile.status !== 'approved' && !isPrimaryAdmin) {
+      
+      if (profile.role === 'admin' && profile.status !== 'approved') {
         await firebaseSignOut(auth);
         throw { code: 'auth/admin-not-approved', message: 'Your admin account is pending approval. Please contact the primary admin.' };
       }
+      
+      // Update local profile state
+      setUserProfile({ id: profile.id || credential.user.uid, ...profile });
     }
     
     return credential;
@@ -132,9 +157,13 @@ export function AuthProvider({ children }) {
   };
 
   const refreshProfile = async () => {
-    if (!user) return;
-    const profile = await fetchUserProfile(user.uid);
-    if (profile) setUserProfile(profile);
+    // Get the current user from auth state directly
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+    const profile = await fetchUserProfile(currentUser.uid);
+    if (profile) {
+      setUserProfile(profile);
+    }
   };
 
   const value = {

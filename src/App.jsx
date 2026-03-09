@@ -26,13 +26,14 @@ function AuthLoadingScreen() {
 }
 
 function AuthRedirect({ children }) {
-  const { user, userProfile, loading } = useAuth();
+  const { user, loading } = useAuth();
+  
   if (loading) return <AuthLoadingScreen />;
   if (!user) return children;
-  if (!userProfile) return <Navigate to="/" replace />;
-  if (userProfile.role === 'admin' && userProfile.status === 'approved') return <Navigate to="/admin" replace />;
-  if (userProfile.role === 'admin' && userProfile.status === 'pending') return <Navigate to="/waiting-approval" replace />;
-  return <Navigate to="/" replace />;
+  
+  // If user is logged in, redirect to /admin
+  // AdminRoute will handle access control
+  return <Navigate to="/admin" replace />;
 }
 
 function AppLayout({ children }) {

@@ -117,7 +117,7 @@ export default function Navbar() {
                       </div>
                       
                       {/* Admin Links */}
-                      {userProfile?.role === 'admin' && userProfile?.status === 'approved' && (
+                      {userProfile?.role === 'admin' && (
                         <>
                           <div className="border-t border-gray-100 pt-2 mt-2">
                             <p className="px-4 py-1 text-xs text-gray-400 uppercase tracking-wider">Admin</p>
@@ -243,7 +243,7 @@ export default function Navbar() {
             
             {user ? (
               <>
-                {userProfile?.role === 'admin' && userProfile?.status === 'approved' && (
+                {userProfile?.role === 'admin' && (
                   <>
                     <Link
                       to="/admin"

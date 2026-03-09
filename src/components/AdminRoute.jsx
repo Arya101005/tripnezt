@@ -25,12 +25,9 @@ export default function AdminRoute({ children }) {
     );
   }
 
+  // Allow any user with admin role to access admin pages
   if (userProfile.role !== 'admin') {
     return <Navigate to="/" replace />;
-  }
-
-  if (userProfile.status === 'pending') {
-    return <Navigate to="/waiting-approval" replace />;
   }
 
   return children;
